@@ -4,12 +4,7 @@
   "version": "2.0.0",
   "description": "Universal Cognitive System with P2P Desentralisasi and Offline SLM Framework.",
   "action": {
-    "default_popup": "index.html",
-    "default_icon": {
-      "16": "icon.png",
-      "48": "icon.png",
-      "128": "icon.png"
-    }
+    "default_popup": "index.html"
   },
   "permissions": [
     "activeTab",
