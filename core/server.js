@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 let db;
 
-// Inisialisasi Database SQLite Asynchronous
+// Inisialisasi Database SQLite Asynchronous untuk Local Cache
 (async () => {
   db = await open({
     filename: 'socrates_local.db',
@@ -29,32 +29,25 @@ let db;
   console.log("Database SQLite terhubung.");
 })();
 
-// PIPA DATA AI INTERAKTIF: Meneruskan input ke Cloud API atau Ollama Offline
+// API Chat dengan Deteksi Sumber
 app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
-  
   try {
-    // 1. Cek Cache Lokal Pertama
     const cachedRow = await db.get('SELECT response FROM cache WHERE keyword = ?', [message.trim().toLowerCase()]);
     if (cachedRow) {
-      return res.json({ source: 'Local Cache', response: cachedRow.response });
+      return res.json({ source: 'Local Cache P2P', response: cachedRow.response });
     }
 
     console.log(`Meneruskan "${message}" ke Ollama...`);
-    
-    // Memberikan sinyal batas tunggu komputasi lokal hingga 60 detik
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Connection': 'keep-alive'
-      },
+      headers: { 'Content-Type': 'application/json', 'Connection': 'keep-alive' },
       body: JSON.stringify({
-        model: 'phi3', // Pastikan nama model sesuai dengan yang ada di ollama list
-        prompt: `Anda adalah Socrates Engine, asisten belajar inklusif global. Berikan penjelasan singkat mengenai materi ini: ${message}`,
+        model: 'phi3',
+        prompt: `Anda adalah Socrates Engine. Berikan penjelasan singkat mengenai materi ini: ${message}`,
         stream: false
       }),
       signal: controller.signal
@@ -64,31 +57,27 @@ app.post('/api/chat', async (req, res) => {
 
     if (ollamaResponse.ok) {
       const data = await ollamaResponse.json();
-      
-      // Simpan jawaban baru ke cache lokal
       await db.run('INSERT OR IGNORE INTO cache (keyword, response) VALUES (?, ?)', [message.trim().toLowerCase(), data.response]);
-      
       return res.json({ source: 'Local SLM Offline (Ollama)', response: data.response });
     } else {
-      throw new Error(`Ollama merespons dengan status: ${ollamaResponse.status}`);
+      throw new Error(`Ollama status: ${ollamaResponse.status}`);
     }
-
-  } catch (error) {
+    } catch (error) {
     console.log("Koneksi komputasi lokal sibuk, mengaktifkan Fallback Core:", error.message);
     res.json({ 
-      source: 'Static Core Engine', 
-      response: `Saya menangkap ketertarikan Anda pada materi "${message}". Modul AI lokal sedang menyelesaikan kalkulasi grafik. Mari kita bedah struktur dasarnya bersama-sama lewat perluasan node grafik kognitif di atas!` 
+      source: 'Static Core Engine P2P', 
+      response: 'Saya menangkap ketertarikan Anda pada materi tersebut. Modul AI lokal sedang menyelesaikan kalkulasi grafik. Mari kita bedah struktur dasarnya bersama-sama lewat perluasan node grafik kognitif di atas!' 
     });
   }
 });
 
-// Endpoint CRUD Admin
+// Endpoint untuk mendapatkan data konfigurasi Admin
 app.get('/api/admin/config', (req, res) => {
   res.json({
     openrouter: process.env.OPENROUTER_KEY ? '••••••••••••' + process.env.OPENROUTER_KEY.slice(-4) : 'Not Configured',
     groq: process.env.GROQ_KEY ? '••••••••••••' + process.env.GROQ_KEY.slice(-4) : 'Not Configured',
     gemini: process.env.GEMINI_KEY ? '••••••••••••' + process.env.GEMINI_KEY.slice(-4) : 'Not Configured',
-    fallback_priority: ['Ollama Offline (Primary)', 'OpenRouter', 'Groq', 'Gemini']
+    fallback_priority: ['Ollama Offline', 'P2P Mesh Network', 'Cloud API']
   });
 });
 
@@ -104,4 +93,16 @@ const server = app.listen(port, () => {
   console.log(`Socrates Engine berjalan aman di http://localhost:${port}`);
 });
 
-Gun({ web: server });
+// ==========================================
+// KONFIGURASI AUTOMATED P2P MESH VIA GUNDB
+// ==========================================
+// Opsi 'peers' memungkinkan server Node.js mendengarkan dan melempar grafik data secara real-time
+const gun = Gun({
+  web: server,
+  localStorage: false // Menggunakan memori RAM untuk transfer mesh agar hemat penyimpanan cakram fisik
+});
+
+// Membuat namespace grafik publik untuk sinkronisasi riwayat minat belajar global
+const socratesMesh = gun.get('socrates-global-knowledge-mesh');
+
+console.log("Infrastruktur Desentralisasi P2P Mesh Network Aktif & Menunggu Hubungan Node Tetangga.");

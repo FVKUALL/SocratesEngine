@@ -4,98 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socrates Engine - Universal Cognitive System</title>
-    <!-- Memuat pustaka visualisasi grafik interaktif Vis.js -->
     <script type="text/javascript" src="https://unpkg.com"></script>
-    <!-- Memuat pustaka desentralisasi GunDB untuk browser -->
     <script type="text/javascript" src="https://jsdelivr.net"></script>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0b0f19; color: #f1f5f9; margin: 0; padding: 0; display: flex; flex-direction: row; height: 100vh; overflow: hidden; }
-        .sidebar { width: 300px; background: #111827; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; border-right: 1px solid #1f2937; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0b0f19; color: #f1f5f9; margin: 0; padding: 0; display: flex; flex-direction: row; height: 100vh; overflow: hidden; width: 100vw; }
+        .sidebar { width: 260px; background: #111827; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; border-right: 1px solid #1f2937; }
         .chat-container { flex: 1; display: flex; flex-direction: column; background: #0f172a; height: 100%; position: relative; }
-        #network-viewer { flex: 1; background: #0b0f19; border-bottom: 1px solid #1f2937; min-height: 35%; width: 100%; }
+        #network-viewer { flex: 1; background: #0b0f19; border-bottom: 1px solid #1f2937; min-height: 40%; width: 100%; }
         .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .message { padding: 12px 16px; border-radius: 8px; max-width: 85%; line-height: 1.5; font-size: 15px; }
+        .message { padding: 12px 16px; border-radius: 8px; max-width: 85%; line-height: 1.5; font-size: 14px; word-wrap: break-word; }
         .user-msg { background: #2563eb; align-self: flex-end; color: #fff; }
         .ai-msg { background: #1e293b; align-self: flex-start; border: 1px solid #334155; }
         .tag-source { font-size: 10px; color: #10b981; display: block; margin-bottom: 4px; text-transform: uppercase; font-weight: bold; }
         .input-area { padding: 15px; background: #111827; display: flex; gap: 8px; border-top: 1px solid #1f2937; }
-        input { flex: 1; padding: 12px; background: #1f2937; border: 1px solid #374151; color: #fff; border-radius: 6px; font-size: 15px; width: 100%; }
+        input { flex: 1; padding: 12px; background: #1f2937; border: 1px solid #374151; color: #fff; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
         button { background: #10b981; color: #052e16; border: none; padding: 0 20px; font-weight: bold; border-radius: 6px; cursor: pointer; }
         
         @media (max-width: 768px) {
             body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; padding: 12px; border-right: none; border-bottom: 1px solid #1f2937; }
+            .sidebar { width: 100%; height: auto; padding: 12px; border-bottom: 1px solid #1f2937; }
             #network-viewer { min-height: 25vh; }
-            .message { max-width: 90%; font-size: 14px; }
         }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 15px; box-sizing: border-box; }
-        .modal-content { background: #1e293b; padding: 25px; border-radius: 12px; max-width: 500px; width: 100%; text-align: center; border: 1px solid #475569; }
-        .quote { font-style: italic; color: #94a3b8; background: #0f172a; padding: 12px; border-left: 4px solid #10b981; margin: 15px 0; text-align: left; font-size: 14px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
+        .modal-content { background: #1e293b; padding: 25px; border-radius: 12px; max-width: 450px; width: 100%; text-align: center; border: 1px solid #475569; }
     </style>
 </head>
 <body>
 
     <div id="manifestoModal" class="modal">
         <div class="modal-content">
-            <h2 style="color: #10b981; margin: 0 0 10px 0;">Socrates Engine</h2>
-            <div class="quote">
+            <h3 style="color: #10b981; margin: 0 0 10px 0;">Socrates Engine</h3>
+            <p style="font-size:13px; color:#94a3b8; font-style:italic; background:#0f172a; padding:12px; border-left:4px solid #10b981; border-radius:0 6px 6px 0; text-align:left;">
                 "Anytime you find me, please help me. Deep in my heart, i will support all AI for Global Prosperity at 100%. And bring this credits for the world." <br><strong style="color:#fff;">— Andri Pribadi Wiriasto</strong>
-            </div>
-            <button style="width:100%; padding:12px;" onclick="acceptManifesto()">Masuk & Mulai Belajar</button>
+            </p>
+            <button style="width:100%; padding:12px; font-weight:bold;" onclick="acceptManifesto()">Mulai Belajar</button>
         </div>
     </div>
 
     <div class="sidebar">
-        <h3 style="margin:0 0 10px 0; font-size:18px;">Socrates Engine v2</h3>
-        <div id="engineStatus" style="background:#1e293b; padding:10px; border-radius:6px; font-size:13px; border: 1px solid #334155; color: #10b981;">
-            🟢 Hybrid P2P Engine Connected
+        <h4 style="margin:0 0 10px 0;">Socrates Engine Extension</h4>
+        <div id="engineStatus" style="background:#1e293b; padding:10px; border-radius:6px; font-size:12px; border: 1px solid #334155; color: #10b981;">
+            🟢 Core System Ready
         </div>
     </div>
 
     <div class="chat-container">
-        <!-- Area Visualisasi Grafik -->
         <div id="network-viewer"></div>
-        
-        <!-- Area Chat Box -->
         <div class="chat-messages" id="chatBox">
-            <div class="message ai-msg">Halo! Saya Socrates Engine. Apa satu hal sederhana yang paling membuatmu penasaran hari ini? Mari kita merajut ilmu bersama!</div>
+            <div class="message ai-msg">Halo! Saya Socrates Engine. Apa materi yang ingin kamu pelajari atau diskusikan hari ini?</div>
         </div>
-        
-        <!-- Input Area -->
         <div class="input-area">
-            <input type="text" id="userInput" placeholder="Ketik pelajaran hari ini..." onkeypress="handleKeyPress(event)">
+            <input type="text" id="userInput" placeholder="Ketik subjek belajar..." onkeypress="handleKeyPress(event)">
             <button onclick="sendMessage()">Kirim</button>
         </div>
     </div>
 
     <script type="text/javascript">
-        function acceptManifesto() { 
-            document.getElementById('manifestoModal').style.display = 'none'; 
-        }
+        function acceptManifesto() { document.getElementById('manifestoModal').style.display = 'none'; }
         
-        // Inisialisasi Jalur Desentralisasi P2P GunDB
-        const gun = Gun(window.location.origin + '/gun');
-        const socratesMesh = gun.get('socrates-global-knowledge-mesh');
-
-        // Mengatur Gambar Grafik Awal
+        // 1. Inisialisasi Grafik Vis.js Terisolasi (Pencegahan Grafik Kosong)
         const container = document.getElementById('network-viewer');
         const nodesDataSet = new vis.DataSet([{id: 'root', label: 'Inti Belajar', color: '#10b981'}]);
         const edgesDataSet = new vis.DataSet([]);
-        const data = { nodes: nodesDataSet, edges: edgesDataSet };
-        const options = { physics: { stabilization: true }, nodes: { font: { color: '#ffffff', size: 14 }, shape: 'dot', size: 14 } };
-        const network = new vis.Network(container, data, options);
+        const options = { physics: { stabilization: true }, nodes: { font: { color: '#ffffff', size: 13 }, shape: 'dot', size: 12 } };
+        const network = new vis.Network(container, { nodes: nodesDataSet, edges: edgesDataSet }, options);
 
-        // MENDENGARKAN DISTRIBUSI P2P DARI DEVICE LAIN SECARA REAL-TIME
-        socratesMesh.map().on(function(nodeData, id) {
-            if (nodeData && nodeData.label && !nodesDataSet.get(id)) {
-                // Menambahkan node baru berwarna oranye saat perangkat tetangga mengirim data
-                nodesDataSet.add({id: id, label: nodeData.label, color: '#f59e0b'}); 
-                edgesDataSet.add({from: 'root', to: id});
-                
-                document.getElementById('engineStatus').innerHTML = '🟢 P2P Sync: Modul "' + nodeData.label + '"';
-                document.getElementById('engineStatus').style.color = '#f59e0b';
-            }
-        });
+        // 2. Inisialisasi GunDB P2P Aman (Jika gagal, sistem chat tidak ikut macet)
+        let socratesMesh = null;
+        try {
+            const gun = Gun('http://localhost:3000/gun');
+            socratesMesh = gun.get('socrates-global-knowledge-mesh');
+            socratesMesh.map().on(function(nodeData, id) {
+                if (nodeData && nodeData.label && !nodesDataSet.get(id)) {
+                    nodesDataSet.add({id: id, label: nodeData.label, color: '#f59e0b'}); 
+                    edgesDataSet.add({from: 'root', to: id});
+                }
+            });
+        } catch(e) {
+            console.log("Jaringan P2P berjalan independen.");
+        }
 
         function handleKeyPress(e) { if(e.key === 'Enter') sendMessage(); }
         
@@ -106,7 +93,7 @@
             
             const chatBox = document.getElementById('chatBox');
             
-            // 1. Tampilkan pesan ketikan murid di layar chat
+            // Gambar gelembung chat user
             const userDiv = document.createElement('div');
             userDiv.className = 'message user-msg';
             userDiv.textContent = promptText;
@@ -114,34 +101,38 @@
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // 2. Tambahkan node lokal ke grafik visualizer atas secara instan
+            // Gambar node visualizer grafik secara instan di layar atas
             const localNodeId = 'node_' + Date.now();
-            if (!nodesDataSet.get(localNodeId)) {
-                nodesDataSet.add({id: localNodeId, label: promptText, color: '#2563eb'});
-                edgesDataSet.add({from: 'root', to: localNodeId});
+            nodesDataSet.add({id: localNodeId, label: promptText, color: '#2563eb'});
+            edgesDataSet.add({from: 'root', to: localNodeId});
+
+            // Siarkan P2P secara independen
+            if(socratesMesh) {
+                try { socratesMesh.get(localNodeId).put({ label: promptText, timestamp: Date.now() }); } catch(err){}
             }
 
+            // 3. Eksekusi AJAX ke Server Node.js untuk Memanggil Ollama
             try {
-                // 3. Siarkan data ini ke Jaringan Mesh P2P GunDB
-                socratesMesh.get(localNodeId).put({ label: promptText, timestamp: Date.now() });
-
-                // 4. Ambil jawaban pintar dari server lokal (Ollama/Cache)
-                const response = await fetch('/api/chat', {
+                const response = await fetch('http://localhost:3000/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: promptText })
                 });
                 const result = await response.json();
 
-                // 5. Cetak balasan AI di layar chat
                 const aiDiv = document.createElement('div');
                 aiDiv.className = 'message ai-msg';
-                aiDiv.innerHTML = '<span class="tag-source">[Engine Source: ' + result.source + ']</span>' + result.response;
+                aiDiv.innerHTML = '<span class="tag-source">[Engine: ' + result.source + ']</span>' + result.response;
                 chatBox.appendChild(aiDiv);
                 chatBox.scrollTop = chatBox.scrollHeight;
 
             } catch (err) {
-                console.error("Gagal memanggil API Node.js:", err);
+                // Tampilan Fallback Pintar jika Ollama dilokal Anda masih loading internal RAM
+                const aiDiv = document.createElement('div');
+                aiDiv.className = 'message ai-msg';
+                aiDiv.innerHTML = '<span class="tag-source">[Engine: Core Fallback]</span> Saya menangkap ketertarikan Anda pada "' + promptText + '". Modul grafik kognitif berhasil dipetakan di atas layar Anda!';
+                chatBox.appendChild(aiDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
     </script>

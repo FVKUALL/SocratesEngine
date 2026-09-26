@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Socrates Engine Universal",
+  "version": "2.0.0",
+  "description": "Universal Cognitive System with P2P Desentralisasi and Offline SLM Framework.",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "http://127.0.0*"
+  ]
+}
