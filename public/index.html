@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socrates Engine - Universal Cognitive System</title>
-    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <!-- Memuat pustaka visualisasi grafik interaktif Vis.js secara mandiri -->
+    <script type="text/javascript" src="https://unpkg.com"></script>
+    <!-- Memuat pustaka desentralisasi GunDB untuk browser -->
+    <script type="text/javascript" src="https://jsdelivr.net"></script>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #0b0f19; color: #f1f5f9; margin: 0; padding: 0; display: flex; flex-direction: row; height: 100vh; overflow: hidden; }
         .sidebar { width: 300px; background: #111827; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; border-right: 1px solid #1f2937; }
@@ -60,12 +63,31 @@
         </div>
     </div>
 
-    <script>
-        function acceptManifesto() { document.getElementById('manifestoModal').style.display = 'none'; }
+    <!-- AREA BLOK SKRIP LOGIKA DIBAWAH INI WAJIB TERBUNGKUS DENGAN BENAR -->
+    <script type="text/javascript">
+        function acceptManifesto() { 
+            document.getElementById('manifestoModal').style.display = 'none'; 
+        }
+        
+        // Inisialisasi Klien GunDB P2P desentralisasi lokal
+        const gun = Gun(window.location.origin + '/gun');
+        const socratesMesh = gun.get('socrates-global-knowledge-mesh');
+
         const container = document.getElementById('network-viewer');
-        const data = { nodes: new vis.DataSet([{id: 1, label: 'Inti Belajar', color: '#10b981'}]), edges: new vis.DataSet([]) };
+        const data = { nodes: new vis.DataSet([{id: 'root', label: 'Inti Belajar', color: '#10b981'}]), edges: new vis.DataSet([]) };
         const options = { physics: { stabilization: true }, nodes: { font: { color: '#ffffff', size: 14 }, shape: 'dot', size: 14 } };
         const network = new vis.Network(container, data, options);
+
+        // Mekanisme mendengarkan kiriman data grafik P2P dari node komputer lain
+        socratesMesh.map().on((nodeData, id) => {
+            if (nodeData && nodeData.label && !data.nodes.get(id)) {
+                data.nodes.add({id: id, label: nodeData.label, color: '#f59e0b'}); 
+                data.edges.add({from: 'root', to: id});
+                
+                document.getElementById('engineStatus').innerHTML = '🟢 P2P Sync: Modul "' + nodeData.label + '"';
+                document.getElementById('engineStatus').style.color = '#f59e0b';
+            }
+        });
 
         function handleKeyPress(e) { if(e.key === 'Enter') sendMessage(); }
         
@@ -83,6 +105,11 @@
             input.value = '';
 
             try {
+                // Broadcast data ke jaringan mesh tetangga melalui GunDB
+                const uniqueNodeId = 'node_' + Date.now();
+                socratesMesh.get(uniqueNodeId).put({ label: promptText, timestamp: Date.now() });
+
+                // Ambil data respon AI dari backend
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -95,10 +122,6 @@
                 aiDiv.innerHTML = '<span class="tag-source">[Engine Source: ' + result.source + ']</span>' + result.response;
                 chatBox.appendChild(aiDiv);
                 chatBox.scrollTop = chatBox.scrollHeight;
-
-                const newId = Date.now();
-                data.nodes.add({id: newId, label: promptText, color: '#2563eb'});
-                data.edges.add({from: 1, to: newId});
 
             } catch (err) {
                 console.error("Gagal memanggil API Node.js:", err);
