@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socrates Engine - Universal Cognitive System</title>
-    <!-- Memuat pustaka visualisasi grafik interaktif Vis.js secara mandiri -->
+    <!-- Memuat pustaka visualisasi grafik interaktif Vis.js -->
     <script type="text/javascript" src="https://unpkg.com"></script>
     <!-- Memuat pustaka desentralisasi GunDB untuk browser -->
     <script type="text/javascript" src="https://jsdelivr.net"></script>
@@ -53,36 +53,44 @@
     </div>
 
     <div class="chat-container">
+        <!-- Area Visualisasi Grafik -->
         <div id="network-viewer"></div>
+        
+        <!-- Area Chat Box -->
         <div class="chat-messages" id="chatBox">
             <div class="message ai-msg">Halo! Saya Socrates Engine. Apa satu hal sederhana yang paling membuatmu penasaran hari ini? Mari kita merajut ilmu bersama!</div>
         </div>
+        
+        <!-- Input Area -->
         <div class="input-area">
             <input type="text" id="userInput" placeholder="Ketik pelajaran hari ini..." onkeypress="handleKeyPress(event)">
             <button onclick="sendMessage()">Kirim</button>
         </div>
     </div>
 
-    <!-- AREA BLOK SKRIP LOGIKA DIBAWAH INI WAJIB TERBUNGKUS DENGAN BENAR -->
     <script type="text/javascript">
         function acceptManifesto() { 
             document.getElementById('manifestoModal').style.display = 'none'; 
         }
         
-        // Inisialisasi Klien GunDB P2P desentralisasi lokal
+        // Inisialisasi Jalur Desentralisasi P2P GunDB
         const gun = Gun(window.location.origin + '/gun');
         const socratesMesh = gun.get('socrates-global-knowledge-mesh');
 
+        // Mengatur Gambar Grafik Awal
         const container = document.getElementById('network-viewer');
-        const data = { nodes: new vis.DataSet([{id: 'root', label: 'Inti Belajar', color: '#10b981'}]), edges: new vis.DataSet([]) };
+        const nodesDataSet = new vis.DataSet([{id: 'root', label: 'Inti Belajar', color: '#10b981'}]);
+        const edgesDataSet = new vis.DataSet([]);
+        const data = { nodes: nodesDataSet, edges: edgesDataSet };
         const options = { physics: { stabilization: true }, nodes: { font: { color: '#ffffff', size: 14 }, shape: 'dot', size: 14 } };
         const network = new vis.Network(container, data, options);
 
-        // Mekanisme mendengarkan kiriman data grafik P2P dari node komputer lain
-        socratesMesh.map().on((nodeData, id) => {
-            if (nodeData && nodeData.label && !data.nodes.get(id)) {
-                data.nodes.add({id: id, label: nodeData.label, color: '#f59e0b'}); 
-                data.edges.add({from: 'root', to: id});
+        // MENDENGARKAN DISTRIBUSI P2P DARI DEVICE LAIN SECARA REAL-TIME
+        socratesMesh.map().on(function(nodeData, id) {
+            if (nodeData && nodeData.label && !nodesDataSet.get(id)) {
+                // Menambahkan node baru berwarna oranye saat perangkat tetangga mengirim data
+                nodesDataSet.add({id: id, label: nodeData.label, color: '#f59e0b'}); 
+                edgesDataSet.add({from: 'root', to: id});
                 
                 document.getElementById('engineStatus').innerHTML = '🟢 P2P Sync: Modul "' + nodeData.label + '"';
                 document.getElementById('engineStatus').style.color = '#f59e0b';
@@ -98,18 +106,26 @@
             
             const chatBox = document.getElementById('chatBox');
             
+            // 1. Tampilkan pesan ketikan murid di layar chat
             const userDiv = document.createElement('div');
             userDiv.className = 'message user-msg';
             userDiv.textContent = promptText;
             chatBox.appendChild(userDiv);
             input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // 2. Tambahkan node lokal ke grafik visualizer atas secara instan
+            const localNodeId = 'node_' + Date.now();
+            if (!nodesDataSet.get(localNodeId)) {
+                nodesDataSet.add({id: localNodeId, label: promptText, color: '#2563eb'});
+                edgesDataSet.add({from: 'root', to: localNodeId});
+            }
 
             try {
-                // Broadcast data ke jaringan mesh tetangga melalui GunDB
-                const uniqueNodeId = 'node_' + Date.now();
-                socratesMesh.get(uniqueNodeId).put({ label: promptText, timestamp: Date.now() });
+                // 3. Siarkan data ini ke Jaringan Mesh P2P GunDB
+                socratesMesh.get(localNodeId).put({ label: promptText, timestamp: Date.now() });
 
-                // Ambil data respon AI dari backend
+                // 4. Ambil jawaban pintar dari server lokal (Ollama/Cache)
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -117,6 +133,7 @@
                 });
                 const result = await response.json();
 
+                // 5. Cetak balasan AI di layar chat
                 const aiDiv = document.createElement('div');
                 aiDiv.className = 'message ai-msg';
                 aiDiv.innerHTML = '<span class="tag-source">[Engine Source: ' + result.source + ']</span>' + result.response;
