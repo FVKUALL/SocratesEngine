@@ -102,11 +102,16 @@
         </div>
     </div>
 
-    <div class="chat-container">
+        <div class="chat-container">
+        <!-- Area Visualizer SVG dengan Koordinat Dinamis yang Dikunci via JS -->
         <div id="network-viewer">
             <svg id="canvas-svg">
-                <circle cx="50%" cy="50%" r="28" fill="#10b981"/>
-                <text x="50%" y="52%" fill="#fff" font-size="12" text-anchor="middle" font-weight="bold">Inti Belajar</text>
+                <!-- Group untuk garis penghubung agar berada di lapisan bawah -->
+                <g id="dynamic-lines"></g>
+                <!-- Node Pusat Utama -->
+                <circle id="core-circle" fill="#10b981"/>
+                <text id="core-text" fill="#fff" font-size="12" text-anchor="middle" font-weight="bold">Inti Belajar</text>
+                <!-- Group untuk lingkaran cabang ilmu agar berada di lapisan atas -->
                 <g id="dynamic-nodes"></g>
             </svg>
         </div>
@@ -126,6 +131,39 @@
             document.getElementById('manifestoModal').style.display = 'none'; 
         }
 
+        // FUNGSI UNTUK MENGATUR KOORDINAT PUSAT SVG SECARA DINAMIS
+        let centerX = 200;
+        let centerY = 90;
+
+        function resizeCanvas() {
+            const svgCanvas = document.getElementById('canvas-svg');
+            if (svgCanvas) {
+                const w = svgCanvas.clientWidth || 400;
+                const h = svgCanvas.clientHeight || 180;
+                centerX = w / 2;
+                centerY = h / 2;
+
+                // Set posisi lingkaran pusat inti belajar
+                const coreCircle = document.getElementById('core-circle');
+                if (coreCircle) {
+                    coreCircle.setAttribute("cx", centerX);
+                    coreCircle.setAttribute("cy", centerY);
+                    coreCircle.setAttribute("r", "28");
+                }
+
+                // Set posisi teks pusat inti belajar
+                const coreText = document.getElementById('core-text');
+                if (coreText) {
+                    coreText.setAttribute("x", centerX);
+                    coreText.setAttribute("y", centerY + 4);
+                }
+            }
+        }
+
+        // Jalankan kalkulasi ukuran saat halaman pertama kali dimuat
+        window.addEventListener('load', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
+
         function handleKeyPress(e) { if(e.key === 'Enter') sendMessage(); }
         
         async function sendMessage() {
@@ -137,6 +175,7 @@
             
             const chatBox = document.getElementById('chatBox');
             
+            // 1. Gambar pesan user ke chat log
             const userDiv = document.createElement('div');
             userDiv.className = 'message user-msg';
             userDiv.textContent = promptText;
@@ -144,41 +183,54 @@
             textInput.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Logika Menggambar Node Cabang Ilmu Berbasis SVG
+            // PENTING: Refresh kalkulasi ukuran canvas sebelum menggambar node baru
+            resizeCanvas();
+
+            // 2. Gambar Node Grafik Baru Menggunakan Matematika Koordinat Piksel Riil
             try {
-                const svgGroup = document.getElementById('dynamic-nodes');
-                const svgCanvas = document.getElementById('canvas-svg');
-                const w = svgCanvas.clientWidth || window.innerWidth * 0.7;
-                const h = svgCanvas.clientHeight || window.innerHeight * 0.4;
+                const svgLines = document.getElementById('line-container') || document.getElementById('dynamic-lines');
+                const svgNodes = document.getElementById('dynamic-nodes');
                 
+                // Menghitung sudut acak agar gelembung menyebar melingkar rapi
                 const angle = Math.random() * Math.PI * 2;
-                const radius = Math.min(w, h) * 0.25;
-                const cx = (w / 2) + Math.cos(angle) * radius;
-                const cy = (h / 2) + Math.sin(angle) * radius;
+                const radius = 65; // Jarak bentangan cabang dari lingkaran pusat
+                const cx = centerX + Math.cos(angle) * radius;
+                const cy = centerY + Math.sin(angle) * radius;
 
+                // Buat Garis Penghubung Node
                 const newLine = document.createElementNS("http://w3.org", "line");
-                newLine.setAttribute("x1", w / 2); newLine.setAttribute("y1", h / 2);
-                newLine.setAttribute("x2", cx); newLine.setAttribute("y2", cy);
-                newLine.setAttribute("stroke", "#2563eb"); newLine.setAttribute("stroke-width", "2");
-                svgGroup.appendChild(newLine);
+                newLine.setAttribute("x1", centerX);
+                newLine.setAttribute("y1", centerY);
+                newLine.setAttribute("x2", cx);
+                newLine.setAttribute("y2", cy);
+                newLine.setAttribute("stroke", "#2563eb");
+                newLine.setAttribute("stroke-width", "2");
+                svgLines.appendChild(newLine);
 
+                // Buat Lingkaran Node Cabang
                 const newCircle = document.createElementNS("http://w3.org", "circle");
-                newCircle.setAttribute("cx", cx); newCircle.setAttribute("cy", cy); newCircle.setAttribute("r", "14"); newCircle.setAttribute("fill", "#2563eb");
-                svgGroup.appendChild(newCircle);
+                newCircle.setAttribute("cx", cx);
+                newCircle.setAttribute("cy", cy);
+                newCircle.setAttribute("r", "14");
+                newCircle.setAttribute("fill", "#2563eb");
+                svgNodes.appendChild(newCircle);
 
+                // Buat Teks Label Node Cabang
                 const newText = document.createElementNS("http://w3.org", "text");
-                newText.setAttribute("x", cx); newText.setAttribute("y", cy + 24); newText.setAttribute("fill", "#94a3b8");
-                newText.setAttribute("font-size", "11"); newText.setAttribute("text-anchor", "middle");
-                newText.textContent = promptText.length > 12 ? promptText.slice(0, 10) + '..' : promptText;
-                svgGroup.appendChild(newText);
+                newText.setAttribute("x", cx);
+                newText.setAttribute("y", cy + 24);
+                newText.setAttribute("fill", "#94a3b8");
+                newText.setAttribute("font-size", "11");
+                newText.setAttribute("text-anchor", "middle");
+                newText.textContent = promptText.length > 10 ? promptText.slice(0, 8) + '..' : promptText;
+                svgNodes.appendChild(newText);
             } catch(err) {
-                console.error(err);
+                console.error("Gagal menggambar peta kognitif:", err);
             }
 
-            // Pipa Panggilan AI Universal Pintar Kebal CSP Chrome
+            // 3. Panggilan AI Universal Offline
             try {
-                const targetUrl = window.location.hostname === 'localhost' ? '/api/chat' : 'http://localhost:3000/api/chat';
-                const response = await fetch(targetUrl, {
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: promptText })
