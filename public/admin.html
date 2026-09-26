@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Socrates Engine - Secure CRUD Admin</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: #e0e0e0; padding: 40px; }
+        .card { background: #1e1e1e; padding: 25px; border-radius: 8px; max-width: 500px; margin: auto; }
+        .form-group { margin-bottom: 15px; position: relative; }
+        label { display: block; margin-bottom: 5px; color: #aaa; }
+        input { width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; }
+        button { background: #00e676; color: #000; border: none; padding: 12px 20px; font-weight: bold; border-radius: 4px; cursor: pointer; width: 100%; }
+        button:hover { background: #00c853; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Dashboard Admin - API Key Masking Manager</h2>
+        <p>Inisiasi Kesejahteraan Global 100% - Andri Pribadi Wiriasto</p>
+        <div id="crudForm">
+            <div class="form-group">
+                <label>OpenRouter API Key (Prioritas 1):</label>
+                <input type="text" id="openrouterKey">
+            </div>
+            <div class="form-group">
+                <label>Groq API Key (Prioritas 2):</label>
+                <input type="text" id="groqKey">
+            </div>
+            <div class="form-group">
+                <label>Gemini API Key (Prioritas 3):</label>
+                <input type="text" id="geminiKey">
+            </div>
+            <button onclick="saveConfig()">Simpan & Terapkan Konfigurasi</button>
+        </div>
+    </div>
+
+    <script>
+        async function loadConfig() {
+            const res = await fetch('/api/admin/config');
+            const data = await res.json();
+            document.getElementById('openrouterKey').value = data.openrouter;
+            document.getElementById('groqKey').value = data.groq;
+            document.getElementById('geminiKey').value = data.gemini;
+        }
+
+        async function saveConfig() {
+            const body = {
+                openrouter: document.getElementById('openrouterKey').value,
+                groq: document.getElementById('groqKey').value,
+                gemini: document.getElementById('geminiKey').value
+            };
+            const res = await fetch('/api/admin/config/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const result = await res.json();
+            alert(result.message);
+            loadConfig();
+        }
+        window.onload = loadConfig;
+    </script>
+</body>
+</html>

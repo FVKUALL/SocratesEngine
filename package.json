@@ -1,0 +1,21 @@
+{
+  "name": "socrates-engine-secure",
+  "version": "1.0.0",
+  "description": "Universal Socrates Engine with Secure Key Masking and P2P Architecture",
+  "main": "core/server.js",
+  "scripts": {
+    "start": "node core/server.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "gun": "^0.2020.1239",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  }
+}
