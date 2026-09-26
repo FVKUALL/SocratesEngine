@@ -5,14 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socrates Engine - Universal Cognitive System</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0b0f19; color: #f1f5f9; margin: 0; padding: 0; display: flex; flex-direction: row; height: 100vh; overflow: hidden; width: 100vw; }
-        .sidebar { width: 240px; background: #111827; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; border-right: 1px solid #1f2937; }
-        .chat-container { flex: 1; display: flex; flex-direction: column; background: #0f172a; height: 100%; position: relative; }
+        /* CSS Fleksibel Adaptif: Penuh di Web biasa, Mengunci rapi di Ekstensi */
+        html, body { 
+            background: #0b0f19; 
+            color: #f1f5f9; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            width: 100vw;
+            overflow: hidden; 
+            box-sizing: border-box;
+        }
         
-        #network-viewer { flex: 1; background: #0b0f19; border-bottom: 1px solid #1f2937; min-height: 35%; width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+        /* Mengamankan ukuran khusus jika berjalan sebagai jendela Ekstensi Chrome Popup */
+        @media screen and (min-width: 200px) and (max-width: 450px) {
+            html, body { width: 400px; height: 550px; }
+        }
+
+        .sidebar { 
+            width: 100%; 
+            background: #111827; 
+            padding: 12px 20px; 
+            box-sizing: border-box; 
+            border-bottom: 1px solid #1f2937; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .sidebar h3 { margin: 0; font-size: 16px; letter-spacing: 0.5px; }
+        
+        .chat-container { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            background: #0f172a; 
+            height: calc(100% - 45px); 
+            position: relative; 
+        }
+        
+        #network-viewer { 
+            flex: 1;
+            min-height: 40%;
+            background: #0b0f19; 
+            border-bottom: 1px solid #1f2937; 
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow: hidden; 
+        }
         #canvas-svg { width: 100%; height: 100%; }
 
-        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .chat-messages { 
+            flex: 1; 
+            padding: 15px; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+        }
         .message { padding: 12px 16px; border-radius: 8px; max-width: 85%; line-height: 1.5; font-size: 14px; word-wrap: break-word; }
         .user-msg { background: #2563eb; align-self: flex-end; color: #fff; }
         .ai-msg { background: #1e293b; align-self: flex-start; border: 1px solid #334155; }
@@ -20,41 +73,38 @@
         
         .input-area { padding: 15px; background: #111827; display: flex; gap: 8px; border-top: 1px solid #1f2937; }
         input { flex: 1; padding: 12px; background: #1f2937; border: 1px solid #374151; color: #fff; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
-        button { background: #10b981; color: #052e16; border: none; padding: 0 20px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        button { background: #10b981; color: #052e16; border: none; padding: 0 24px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        button:hover { background: #34d399; }
         
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; padding: 12px; border-bottom: 1px solid #1f2937; }
-            #network-viewer { min-height: 25vh; }
-        }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 15px; box-sizing: border-box; }
-        .modal-content { background: #1e293b; padding: 20px; border-radius: 12px; max-width: 400px; width: 100%; text-align: center; border: 1px solid #475569; }
-        .quote { font-style: italic; color: #94a3b8; background: #0f172a; padding: 12px; border-left: 4px solid #10b981; margin: 15px 0; text-align: left; font-size: 13px; line-height: 1.4; }
+        /* Perbaikan Total Modal Pop-up Kemanusiaan agar tidak bocor keluar layar */
+        .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 7, 12, 0.96); display: flex; justify-content: center; align-items: center; z-index: 9999; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: #1e293b; padding: 30px; border-radius: 12px; max-width: 480px; width: 100%; text-align: center; border: 1px solid #475569; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.7); }
+        .quote { font-style: italic; color: #94a3b8; background: #0f172a; padding: 15px; border-left: 4px solid #10b981; margin: 20px 0; text-align: left; font-size: 13px; line-height: 1.5; border-radius: 0 6px 6px 0; }
     </style>
 </head>
 <body>
 
     <div id="manifestoModal" class="modal">
         <div class="modal-content">
-            <h3 style="color: #10b981; margin: 0 0 5px 0;">Socrates Engine</h3>
+            <h2 style="color: #10b981; margin: 0 0 10px 0; font-size: 22px;">Socrates Engine</h2>
+            <p style="margin: 0; font-size: 14px; color: #94a3b8;">Infrastruktur Abadi Penopang Peradaban Global</p>
             <div class="quote">
-                "Anytime you find me, please help me. Deep in my heart, i will support all AI for Global Prosperity at 100%. And bring this credits for the world." <br><strong style="color:#fff;">— Andri Pribadi Wiriasto</strong>
+                "Anytime you find me, please help me. Deep in my heart, i will support all AI for Global Prosperity at 100%. And bring this credits for the world." <br><strong style="color:#fff; display: block; margin-top: 5px;">— Andri Pribadi Wiriasto</strong>
             </div>
-            <button style="width:100%; padding:12px; font-weight:bold;" onclick="acceptManifesto()">Mulai Belajar</button>
+            <button style="width:100%; padding:14px; font-weight:bold;" onclick="acceptManifesto()">Mulai Belajar</button>
         </div>
     </div>
 
     <div class="sidebar">
-        <h3 style="margin:0 0 5px 0; font-size:16px;">Socrates Engine v2</h3>
-        <div id="engineStatus" style="background:#1e293b; padding:8px; border-radius:6px; font-size:12px; border: 1px solid #334155; color: #10b981;">
-            🟢 Local Compute Ready
+        <h3>Socrates Engine v2</h3>
+        <div id="engineStatus" style="background:#1e293b; padding:6px 12px; border-radius:6px; font-size:12px; border: 1px solid #334155; color: #10b981; font-weight: bold;">
+            🟢 Core Active
         </div>
     </div>
 
     <div class="chat-container">
         <div id="network-viewer">
             <svg id="canvas-svg">
-                <line x1="50%" y1="50%" x2="50%" y2="50%" id="line-container" stroke="#374151" stroke-width="2"/>
                 <circle cx="50%" cy="50%" r="28" fill="#10b981"/>
                 <text x="50%" y="52%" fill="#fff" font-size="12" text-anchor="middle" font-weight="bold">Inti Belajar</text>
                 <g id="dynamic-nodes"></g>
@@ -79,7 +129,6 @@
         function handleKeyPress(e) { if(e.key === 'Enter') sendMessage(); }
         
         async function sendMessage() {
-            // Targetkan ID input secara presisi agar kebal error
             const textInput = document.getElementById('userInput');
             if (!textInput) return;
             
@@ -88,15 +137,14 @@
             
             const chatBox = document.getElementById('chatBox');
             
-            // 1. Gambar pesan user ke chat log
             const userDiv = document.createElement('div');
             userDiv.className = 'message user-msg';
             userDiv.textContent = promptText;
             chatBox.appendChild(userDiv);
-            textInput.value = ''; // Mengosongkan kolom input secara aman
+            textInput.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // 2. Gambar Node Grafik Baru Menggunakan SVG Matematika Lokal
+            // Logika Menggambar Node Cabang Ilmu Berbasis SVG
             try {
                 const svgGroup = document.getElementById('dynamic-nodes');
                 const svgCanvas = document.getElementById('canvas-svg');
@@ -108,47 +156,35 @@
                 const cx = (w / 2) + Math.cos(angle) * radius;
                 const cy = (h / 2) + Math.sin(angle) * radius;
 
-                // Garis Penghubung
                 const newLine = document.createElementNS("http://w3.org", "line");
-                newLine.setAttribute("x1", w / 2);
-                newLine.setAttribute("y1", h / 2);
-                newLine.setAttribute("x2", cx);
-                newLine.setAttribute("y2", cy);
-                newLine.setAttribute("stroke", "#2563eb");
-                newLine.setAttribute("stroke-width", "2");
+                newLine.setAttribute("x1", w / 2); newLine.setAttribute("y1", h / 2);
+                newLine.setAttribute("x2", cx); newLine.setAttribute("y2", cy);
+                newLine.setAttribute("stroke", "#2563eb"); newLine.setAttribute("stroke-width", "2");
                 svgGroup.appendChild(newLine);
 
-                // Lingkaran Node Cabang Ilmu
                 const newCircle = document.createElementNS("http://w3.org", "circle");
-                newCircle.setAttribute("cx", cx);
-                newCircle.setAttribute("cy", cy);
-                newCircle.setAttribute("r", "14");
-                newCircle.setAttribute("fill", "#2563eb");
+                newCircle.setAttribute("cx", cx); newCircle.setAttribute("cy", cy); newCircle.setAttribute("r", "14"); newCircle.setAttribute("fill", "#2563eb");
                 svgGroup.appendChild(newCircle);
 
-                // Teks Label Cabang Ilmu
                 const newText = document.createElementNS("http://w3.org", "text");
-                newText.setAttribute("x", cx);
-                newText.setAttribute("y", cy + 24);
-                newText.setAttribute("fill", "#94a3b8");
-                newText.setAttribute("font-size", "11");
-                newText.setAttribute("text-anchor", "middle");
+                newText.setAttribute("x", cx); newText.setAttribute("y", cy + 24); newText.setAttribute("fill", "#94a3b8");
+                newText.setAttribute("font-size", "11"); newText.setAttribute("text-anchor", "middle");
                 newText.textContent = promptText.length > 12 ? promptText.slice(0, 10) + '..' : promptText;
                 svgGroup.appendChild(newText);
             } catch(err) {
-                console.error("Gagal menggambar peta kognitif:", err);
+                console.error(err);
             }
 
-            // 3. Pipa Komunikasi AJAX Terisolasi untuk Memanggil Ollama
+            // Pipa Panggilan AI Universal Pintar Kebal CSP Chrome
             try {
-                const response = await fetch('/api/chat', {
+                const targetUrl = window.location.hostname === 'localhost' ? '/api/chat' : 'http://localhost:3000/api/chat';
+                const response = await fetch(targetUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: promptText })
                 });
                 
                 const result = await response.json();
-
                 const aiDiv = document.createElement('div');
                 aiDiv.className = 'message ai-msg';
                 aiDiv.innerHTML = '<span class="tag-source">[Engine: ' + result.source + ']</span>' + result.response;
@@ -158,7 +194,7 @@
             } catch (err) {
                 const aiDiv = document.createElement('div');
                 aiDiv.className = 'message ai-msg';
-                aiDiv.innerHTML = '<span class="tag-source">[Engine: Core Fallback]</span> Saya menangkap ketertarikan Anda pada materi "' + promptText + '". Cabang pengetahuan berhasil dipetakan ke dalam bagan di atas!';
+                aiDiv.innerHTML = '<span class="tag-source">[Engine: Core Fallback]</span> Menghubungkan ke basis pengetahuan lokal untuk "' + promptText + '". Cabang pemetaan kognitif berhasil diamankan di atas layar!';
                 chatBox.appendChild(aiDiv);
                 chatBox.scrollTop = chatBox.scrollHeight;
             }

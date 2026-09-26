@@ -32,41 +32,46 @@ let db;
 // API Chat dengan Deteksi Sumber
 app.post('/api/chat', async (req, res) => {
   const { message } = req.body;
+  
   try {
+    // 1. Cek Cache Lokal Pertama
     const cachedRow = await db.get('SELECT response FROM cache WHERE keyword = ?', [message.trim().toLowerCase()]);
     if (cachedRow) {
       return res.json({ source: 'Local Cache P2P', response: cachedRow.response });
     }
 
     console.log(`Meneruskan "${message}" ke Ollama...`);
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
+    // Menghapus AbortController agar server sabar menunggu pemuatan RAM komputer selesai
     const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Connection': 'keep-alive' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Connection': 'keep-alive'
+      },
       body: JSON.stringify({
-        model: 'phi3',
-        prompt: `Anda adalah Socrates Engine. Berikan penjelasan singkat mengenai materi ini: ${message}`,
+        model: 'phi3', 
+        prompt: `Anda adalah Socrates Engine, asisten belajar inklusif global. Berikan penjelasan singkat, padat, dan analitik mengenai materi ini: ${message}`,
         stream: false
-      }),
-      signal: controller.signal
+      })
     });
-
-    clearTimeout(timeoutId);
 
     if (ollamaResponse.ok) {
       const data = await ollamaResponse.json();
+      
+      // Simpan jawaban baru ke cache lokal
       await db.run('INSERT OR IGNORE INTO cache (keyword, response) VALUES (?, ?)', [message.trim().toLowerCase(), data.response]);
+      
       return res.json({ source: 'Local SLM Offline (Ollama)', response: data.response });
     } else {
-      throw new Error(`Ollama status: ${ollamaResponse.status}`);
+      throw new Error(`Ollama merespons dengan status: ${ollamaResponse.status}`);
     }
-    } catch (error) {
-    console.log("Koneksi komputasi lokal sibuk, mengaktifkan Fallback Core:", error.message);
+
+  } catch (error) {
+    console.log("Koneksi cloud/offline sibuk, menggunakan Fallback Core:", error.message);
     res.json({ 
-      source: 'Static Core Engine P2P', 
-      response: 'Saya menangkap ketertarikan Anda pada materi tersebut. Modul AI lokal sedang menyelesaikan kalkulasi grafik. Mari kita bedah struktur dasarnya bersama-sama lewat perluasan node grafik kognitif di atas!' 
+      source: 'Static Core Engine', 
+      response: `Saya menangkap ketertarikan Anda pada materi "${message}". Modul AI lokal sedang menyelesaikan kalkulasi grafik. Mari kita bedah struktur dasarnya bersama-sama lewat peta kognitif di layar atas Anda!` 
     });
   }
 });
