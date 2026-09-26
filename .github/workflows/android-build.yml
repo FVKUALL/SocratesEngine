@@ -18,10 +18,9 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 20
-        cache: 'npm'
 
-    - name: Install Production Dependencies
-      run: npm ci
+    - name: Install Pure JS & Capacitor Native Dependencies
+      run: npm install
 
     - name: Verify Application Logic via Automation Test Suite
       run: npm test
