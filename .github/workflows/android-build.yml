@@ -1,4 +1,4 @@
-name: Socrates Engine Automated Production Pipeline
+name: Socrates Engine Automated Android Build
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  build-android:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,14 +20,32 @@ jobs:
         node-version: 20
         cache: 'npm'
 
-    - name: Install Pure JS Production Dependencies
+    - name: Install Production Dependencies
       run: npm ci
 
     - name: Verify Application Logic via Automation Test Suite
       run: npm test
 
-    - name: Build Web Application Assets
+    - name: Setup Java JDK Environment for Android Compiling
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Setup Android SDK Platform Components
+      uses: android-actions/setup-android@v3
+
+    - name: Sync Web Assets to Capacitor Android
       run: |
-        echo "Mengompilasi aset antarmuka kognitif untuk deployment desentralisasi..."
-        mkdir -p dist
-        cp -r public/* dist/
+        npx cap sync android
+
+    - name: Compile Production Debug APK File
+      run: |
+        cd android && ./gradlew assembleDebug
+
+    - name: Upload Universal Binary APK Artifact to GitHub
+      uses: actions/upload-artifact@v4
+      with:
+        name: socrates-engine-universal-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 7

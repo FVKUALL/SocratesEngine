@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SocratesEngine</string>
+    <string name="title_activity_main">SocratesEngine</string>
+    <string name="package_name">com.fvkuall.socratesengine</string>
+    <string name="custom_url_scheme">com.fvkuall.socratesengine</string>
+</resources>
